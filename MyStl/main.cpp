@@ -59,7 +59,7 @@ int main() {
 		0
 	};
 
-	for (auto value : values)
+	for (const auto& value : values)
 		TestBitset(value);
 
 	TestBitset2(0b10101001, 0b01010101);
