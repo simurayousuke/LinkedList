@@ -2,27 +2,8 @@
 //
 
 #include <iostream>
-#include "vector.h"
 #include "bitset.h"
 #include <bitset>
-
-void TestVector() {
-	my_stl::Vector<int> *vector = new my_stl::Vector<int>();
-	vector->Add(1);
-	vector->Add(2);
-	vector->Add(3);
-	vector->Add(4);
-	vector->Add(5);
-	vector->Add(6);
-	vector->Add(7);
-	vector->Add(8);
-	vector->Print();
-	vector->Add(9);
-	vector->Print();
-	vector->Remove(4);
-	vector->Print();
-	std::cout << vector->Get(3) << std::endl;
-}
 
 void TestBitset(unsigned long long val) {
 	my_stl::Bitset bitset(val);
@@ -70,7 +51,6 @@ void TestBitset2(unsigned long long val1, unsigned long long val2) {
 }
 
 int main() {
-	//TestVector();
 
 	unsigned long long values[] = {
 		0b10101001'10101001'10101001'10101001'10101001'10101001'10101001'10101001,
