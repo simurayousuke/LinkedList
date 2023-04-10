@@ -1,7 +1,6 @@
 #include "bitset.h"
 
 namespace my_stl {
-
 	Bitset::Bitset(unsigned long long val) {
 		value_ = val;
 	}
