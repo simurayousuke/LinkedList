@@ -72,17 +72,17 @@ namespace my_stl {
 
 	Bitset Bitset::operator~() const noexcept {
 
-		return Bitset(~value_);
+		return { ~value_ };
 	}
 
 	Bitset Bitset::operator<<(size_t pos) const noexcept {
 
-		return Bitset(value_ << pos);
+		return { value_ << pos };
 	}
 
 	Bitset Bitset::operator>>(size_t pos) const noexcept {
 
-		return Bitset(value_ >> pos);
+		return { value_ >> pos };
 	}
 
 	bool Bitset::operator[](size_t pos) const {
@@ -134,11 +134,11 @@ namespace my_stl {
 
 	
 	Bitset operator|(const Bitset& lhs, const Bitset& rhs) noexcept {
-		return Bitset(lhs.GetValue() | rhs.GetValue());
+		return { lhs.GetValue() | rhs.GetValue() };
 	}
 
 	Bitset operator&(const Bitset& lhs, const Bitset& rhs) noexcept {
-		return Bitset(lhs.GetValue() & rhs.GetValue());
+		return { lhs.GetValue() & rhs.GetValue() };
 	}
 	
 
