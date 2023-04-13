@@ -24,7 +24,7 @@ namespace my_stl {
 		class Iterator {
 		private:
 			Node* node_;
-			friend typename List<T>::Iterator List<T>::Erase(Iterator position);
+			friend List<T>::Iterator List<T>::Erase(Iterator position);
 		public:
 			Iterator(Node* node = nullptr) : node_(node) {}
 			Iterator& operator++() { node_ = node_->next_; return *this; }
