@@ -15,7 +15,8 @@ namespace my_stl {
 			Node* next_;
 			Node(const T& value = T(), Node* prev = nullptr, Node* next = nullptr)
 				: value_(value), prev_(prev), next_(next) {}
-		};
+		}; // struct Node
+
 		Node* head_;
 		Node* tail_;
 		int size_;
@@ -33,7 +34,7 @@ namespace my_stl {
 			bool operator==(const Iterator& rhs) const { return node_ == rhs.node_; }
 			bool operator!=(const Iterator& rhs) const { return node_ != rhs.node_; }
 			T& operator*() { return node_->value_; }
-		};
+		}; // class Iterator
 
 		List() : head_(nullptr), tail_(nullptr), size_(0) {}
 		~List() { Clear(); }
@@ -57,7 +58,7 @@ namespace my_stl {
 		Iterator End() { return Iterator(nullptr); }
 		Iterator RBegin() { return Iterator(tail_); }
 		Iterator REnd() { return Iterator(nullptr); }
-	};
+	}; // class List
 
 	template <typename T>
 	List<T>& List<T>::operator=(const List<T>& rhs) {
@@ -216,5 +217,5 @@ namespace my_stl {
 		}
 	}
 
-}
+} // namespace my_stl
 #endif //MYSTL_LIST_H_
