@@ -3,146 +3,301 @@
 
 #include <Iterator>
 #include <stdexcept>
+#include <functional>
 
 namespace my_stl {
 
 	template<class T>
-	struct ListNode {
-		T value_;
-		ListNode<T>* before_ = nullptr;
-		ListNode<T>* next_ = nullptr;
-		ListNode(T value, ListNode<T>* before = nullptr, ListNode<T>* next = nullptr) :value_(value), before_(before), next_(next) {}
-	};
-
-	template<class T>
-	class ListIterator :public std::iterator< std::forward_iterator_tag, T> {
-	private:
-		ListNode<T>* current_node_;
-	public:
-		ListIterator(ListNode<T>* node) :current_node_(node) {}
-		T& operator*() const { return current_node_->value_; }
-
-		// prefix
-		ListIterator& operator++() {
-			if (current_node_->next_ == nullptr)
-				throw std::out_of_range("Out of range.");
-			current_node_ = current_node_->next_;
-			return *this;
-		}
-
-		// postfix
-		ListIterator operator++(int) {
-			auto temp = *this;
-			++*this;
-			return  temp;
-		}
-
-		/*ListIterator& operator--() {
-			if (current_node_->before_ == nullptr)
-				throw std::out_of_range("Out of range.");
-			current_node_ = current_node_->before_;
-			return *this;
-		}
-
-		ListIterator operator--(int) {
-			auto temp = *this;
-			--*this;
-			return  temp;
-		}*/
-
-		bool operator==(const ListIterator& other)const { return current_node_->value_ == other.current_node_->value_; }
-		bool operator!=(const ListIterator& other)const { return current_node_->value_ != other.current_node_->value_; }
-	};
-
-	template<class T>
 	class List {
 	private:
-		ListNode<T>* begin_ = nullptr;
-		ListNode<T>* end_ = nullptr;
-		int size_ = 0;
+		struct Node {
+			T value_;
+			Node* prev_;
+			Node* next_;
+			Node(const T& value = T(), Node* prev = nullptr, Node* next = nullptr)
+				: value_(value), prev_(prev), next_(next) {}
+		};
+		Node* head_;
+		Node* tail_;
+		int size_;
+		Node* Merge(Node* left, Node* right, std::function<bool(const T&, const T&)> comp);
+		Node* Split(Node* head);
+		Node* MergeSort(Node* head, std::function<bool(const T&, const T&)> comp);
 	public:
-		List() = default;
-		List(T&& value);
-		void PushFront(T&& value);
-		void PushBack(T&& value);
-		void PopFront();
+		class Iterator {
+		private:
+			Node* node_;
+			friend typename List<T>::Iterator List<T>::Erase(Iterator position);
+		public:
+			Iterator(Node* node = nullptr) : node_(node) {}
+			Iterator& operator++() { node_ = node_->next_; return *this; }
+			Iterator operator++(int) { auto temp = *this; ++*this; return temp; }
+			Iterator& operator--() { node_ = node_->prev_; return *this; }
+			Iterator operator--(int) { auto temp = *this; --*this; return temp; }
+			bool operator==(const Iterator& rhs) const { return node_ == rhs.node_; }
+			bool operator!=(const Iterator& rhs) const { return node_ != rhs.node_; }
+			T& operator*() { return node_->value_; }
+		};
+
+		List() : head_(nullptr), tail_(nullptr), size_(0) {}
+		~List() { Clear(); }
+		List(const List& rhs) : head_(nullptr), tail_(nullptr), size_(0) { *this = rhs; }
+		List& operator=(const List& rhs);
+		void PushBack(const T& val);
+		void PushFront(const T& val);
 		void PopBack();
-		//void Erase(Iterator it);
-		//void Clear();
-		bool Empty() { return size_ == 0; }
-		int Size() { return size_; }
-		void Sort();
-	public:
-		typedef ListIterator<T> Iterator;
-		auto Head() { return begin_; }
-		auto Tail() { return end_; }
-		Iterator Begin() { return Iterator(begin_); }
-		Iterator End() { return Iterator(end_); }
+		void PopFront();
+		Iterator Erase(Iterator position);
+		void Clear();
+		bool Empty() const { return size_ == 0; }
+		int Size() const { return size_; }
+		void Sort(bool asc = true);
+		void Sort(std::function<bool(const T&, const T&)> comp);
+		void RemoveAll(T value);
+		void RemoveFirst(T value);
+		void RemoveLast(T value);
+
+		Iterator Begin() { return Iterator(head_); }
+		Iterator End() { return Iterator(nullptr); }
+		Iterator RBegin() { return Iterator(tail_); }
+		Iterator REnd() { return Iterator(nullptr); }
 	};
 
-	template<class T>
-	List<T>::List(T&& value) {
-		auto node = new ListNode(value);
-		begin_ = node;
-		end_ = node;
-		size_++;
+	template <typename T>
+	typename List<T>::Node* List<T>::Merge(typename List<T>::Node* left, typename List<T>::Node* right, std::function<bool(const T&, const T&)> comp) {
+		typename List<T>::Node* dummy = new typename List<T>::Node();
+		typename List<T>::Node* tail = dummy;
+
+		while (left && right) {
+			if (comp(left->value_, right->value_)) {
+				tail->next_ = left;
+				left->prev_ = tail;
+				left = left->next_;
+			}
+			else {
+				tail->next_ = right;
+				right->prev_ = tail;
+				right = right->next_;
+			}
+			tail = tail->next_;
+		}
+
+		if (left) {
+			tail->next_ = left;
+			left->prev_ = tail;
+		}
+		if (right) {
+			tail->next_ = right;
+			right->prev_ = tail;
+		}
+
+		typename List<T>::Node* head = dummy->next_;
+		head->prev_ = nullptr;
+		delete dummy;
+
+		return head;
 	}
 
-	template<class T>
-	void List<T>::PushFront(T&& value) {
-		ListNode<T>* node = new ListNode<T>(value, nullptr, begin_);
-		if (begin_ != nullptr)
-			begin_->before_ = node;
+	template <typename T>
+	typename List<T>::Node* List<T>::Split(typename List<T>::Node* head) {
+		typename List<T>::Node* slow = head;
+		typename List<T>::Node* fast = head->next_;
 
-		begin_ = node;
-		if (end_ == nullptr)
-			end_ = node;
+		while (fast && fast->next_) {
+			slow = slow->next_;
+			fast = fast->next_->next_;
+		}
 
-		size_++;
+		typename List<T>::Node* mid = slow->next_;
+		slow->next_ = nullptr;
+		mid->prev_ = nullptr;
+
+		return mid;
 	}
 
-	template<class T>
-	void List<T>::PushBack(T&& value) {
-		ListNode<T>* node = new ListNode<T>(value, end_, nullptr);
-		if (end_ != nullptr)
-			end_->next_ = node;
+	template <typename T>
+	typename List<T>::Node* List<T>::MergeSort(typename List<T>::Node* head, std::function<bool(const T&, const T&)> comp) {
+		if (!head || !head->next_) {
+			return head;
+		}
 
-		end_ = node;
-		if (begin_ == nullptr)
-			begin_ = node;
+		typename List<T>::Node* mid = Split(head);
 
-		size_++;
+		typename List<T>::Node* left = MergeSort(head, comp);
+		typename List<T>::Node* right = MergeSort(mid, comp);
+
+		return Merge(left, right, comp);
 	}
 
-	template<class T>
-	void List<T>::PopFront() {
-		if (begin_ == nullptr)
-			return;
-
-		auto second = begin_->next_;
-		second->before_ = nullptr;
-		delete begin_;
-		begin_ = second;
-
-		size_--;
+	template <typename T>
+	List<T>& List<T>::operator=(const List<T>& rhs) {
+		Clear();
+		for (auto it = rhs.Begin(); it != rhs.End(); ++it) {
+			PushBack(*it);
+		}
+		return *this;
 	}
 
-	template<class T>
+	template <typename T>
+	void List<T>::PushBack(const T& val) {
+		Node* node = new Node(val, tail_, nullptr);
+		if (tail_) {
+			tail_->next_ = node;
+		}
+		else {
+			head_ = node;
+		}
+		tail_ = node;
+		++size_;
+	}
+
+	template <typename T>
+	void List<T>::PushFront(const T& val) {
+		Node* node = new Node(val, nullptr, head_);
+		if (head_) {
+			head_->prev_ = node;
+		}
+		else {
+			tail_ = node;
+		}
+		head_ = node;
+		++size_;
+	}
+
+	template <typename T>
 	void List<T>::PopBack() {
-		if (end_ == nullptr)
+		if (!tail_)
 			return;
 
-		auto second = end_->before_;
-		second->next_ = nullptr;
-		delete end_;
-		end_ = second;
-
-		size_--;
+		Node* temp = tail_;
+		tail_ = tail_->prev_;
+		if (tail_) {
+			tail_->next_ = nullptr;
+		}
+		else {
+			head_ = nullptr;
+		}
+		delete temp;
+		--size_;
 	}
 
-	template<class T>
-	void List<T>::Sort() {
+	template <typename T>
+	void List<T>::PopFront() {
+		if (!head_)
+			return;
 
+		Node* temp = head_;
+		head_ = head_->next_;
+		if (head_) {
+			head_->prev_ = nullptr;
+		}
+		else {
+			tail_ = nullptr;
+		}
+		delete temp;
+		--size_;
+	}
+
+	template <typename T>
+	typename List<T>::Iterator List<T>::Erase(Iterator position) {
+		Node* node = position.node_;
+		List<T>::Iterator ret(node->next_);
+
+		if (node == head_) {
+			PopFront();
+		}
+		else if (node == tail_) {
+			PopBack();
+		}
+		else {
+			node->prev_->next_ = node->next_;
+			node->next_->prev_ = node->prev_;
+			delete node;
+			--size_;
+		}
+
+		return ret;
+	}
+
+	template <typename T>
+	void List<T>::Clear() {
+		while (head_) {
+			Node* temp = head_;
+			head_ = head_->next_;
+			delete temp;
+		}
+		tail_ = nullptr;
+		size_ = 0;
+	}
+
+	template <typename T>
+	void List<T>::Sort(bool asc) {
+		if (asc)
+			Sort([](const T& lhs, const T& rhs) {return lhs < rhs; });
+		else
+			Sort([](const T& lhs, const T& rhs) {return lhs > rhs; });
+	}
+
+	template <typename T>
+	void List<T>::Sort(std::function<bool(const T&, const T&)> comp) {
+		// 挿入ソート
+		/*
+		if (size_ < 2) {
+			return;
+		}
+
+		Node* i = head_->next_;
+		while (i) {
+			Node* j = i;
+			while (j->prev_ && comp(j->value_, j->prev_->value_)) {
+				std::swap(j->value_, j->prev_->value_);
+				j = j->prev_;
+			}
+			i = i->next_;
+		}
+		*/
+
+		// マージソート
+		head_->next_ = MergeSort(head_->next_, comp);
+		if (head_->next_) {
+			head_->next_->prev_ = nullptr;
+		}
+
+		Node* tail = head_->next_;
+		while (tail && tail->next_) {
+			tail = tail->next_;
+		}
+		tail_ = tail;
+	}
+
+	template <typename T>
+	void List<T>::RemoveAll(T value) {
+		for (auto it = Begin(); it != End(); ) {
+			if (*it == value)
+				it = Erase(it);
+			else
+				++it;
+		}
+	}
+
+	template <typename T>
+	void List<T>::RemoveFirst(T value) {
+		for (auto it = Begin(); it != End(); ++it) {
+			if (*it != value)
+				continue;
+			Erase(it);
+			return;
+		}
+	}
+
+	template <typename T>
+	void List<T>::RemoveLast(T value) {
+		for (auto it = RBegin(); it != REnd(); --it) {
+			if (*it != value)
+				continue;
+			Erase(it);
+			return;
+		}
 	}
 
 }
