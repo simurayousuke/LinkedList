@@ -20,9 +20,6 @@ namespace my_stl {
 		Node* head_;
 		Node* tail_;
 		int size_;
-		Node* Merge(Node* left, Node* right, std::function<bool(const T&, const T&)> comp);
-		Node* Split(Node* head);
-		Node* MergeSort(Node* head, std::function<bool(const T&, const T&)> comp);
 	public:
 		class Iterator {
 		private:
@@ -62,72 +59,6 @@ namespace my_stl {
 		Iterator RBegin() { return Iterator(tail_); }
 		Iterator REnd() { return Iterator(nullptr); }
 	};
-
-	template <typename T>
-	typename List<T>::Node* List<T>::Merge(typename List<T>::Node* left, typename List<T>::Node* right, std::function<bool(const T&, const T&)> comp) {
-		typename List<T>::Node* dummy = new typename List<T>::Node();
-		typename List<T>::Node* tail = dummy;
-
-		while (left && right) {
-			if (comp(left->value_, right->value_)) {
-				tail->next_ = left;
-				left->prev_ = tail;
-				left = left->next_;
-			}
-			else {
-				tail->next_ = right;
-				right->prev_ = tail;
-				right = right->next_;
-			}
-			tail = tail->next_;
-		}
-
-		if (left) {
-			tail->next_ = left;
-			left->prev_ = tail;
-		}
-		if (right) {
-			tail->next_ = right;
-			right->prev_ = tail;
-		}
-
-		typename List<T>::Node* head = dummy->next_;
-		head->prev_ = nullptr;
-		delete dummy;
-
-		return head;
-	}
-
-	template <typename T>
-	typename List<T>::Node* List<T>::Split(typename List<T>::Node* head) {
-		typename List<T>::Node* slow = head;
-		typename List<T>::Node* fast = head->next_;
-
-		while (fast && fast->next_) {
-			slow = slow->next_;
-			fast = fast->next_->next_;
-		}
-
-		typename List<T>::Node* mid = slow->next_;
-		slow->next_ = nullptr;
-		mid->prev_ = nullptr;
-
-		return mid;
-	}
-
-	template <typename T>
-	typename List<T>::Node* List<T>::MergeSort(typename List<T>::Node* head, std::function<bool(const T&, const T&)> comp) {
-		if (!head || !head->next_) {
-			return head;
-		}
-
-		typename List<T>::Node* mid = Split(head);
-
-		typename List<T>::Node* left = MergeSort(head, comp);
-		typename List<T>::Node* right = MergeSort(mid, comp);
-
-		return Merge(left, right, comp);
-	}
 
 	template <typename T>
 	List<T>& List<T>::operator=(const List<T>& rhs) {
@@ -240,12 +171,11 @@ namespace my_stl {
 
 	template <typename T>
 	void List<T>::Sort(std::function<bool(const T&, const T&)> comp) {
-		// 挿入ソート
-		/*
 		if (size_ < 2) {
 			return;
 		}
 
+		// 挿入ソート
 		Node* i = head_->next_;
 		while (i) {
 			Node* j = i;
@@ -255,19 +185,6 @@ namespace my_stl {
 			}
 			i = i->next_;
 		}
-		*/
-
-		// マージソート
-		head_->next_ = MergeSort(head_->next_, comp);
-		if (head_->next_) {
-			head_->next_->prev_ = nullptr;
-		}
-
-		Node* tail = head_->next_;
-		while (tail && tail->next_) {
-			tail = tail->next_;
-		}
-		tail_ = tail;
 	}
 
 	template <typename T>
