@@ -1,7 +1,6 @@
 #ifndef MYSTL_LIST_H_
 #define MYSTL_LIST_H_
 
-#include <Iterator>
 #include <stdexcept>
 #include <functional>
 
