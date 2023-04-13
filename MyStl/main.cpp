@@ -3,9 +3,9 @@
 
 template<class T>
 void ListPrintFromHead(my_stl::List<T>* list) {
-	std::cout << "Forward Print (size: " << list->Size() <<" ):"<< std::endl;
-	for (auto it = list->Begin(); it != list->End();++it) {
-		std::cout << *it<< "\t";
+	std::cout << "Forward Print (size: " << list->Size() << " , empty: " << list->Empty() << " ):" << std::endl;
+	for (auto it = list->Begin(); it != list->End(); ++it) {
+		std::cout << *it << "\t";
 	}
 	std::cout << std::endl << std::endl;
 }
@@ -13,7 +13,7 @@ void ListPrintFromHead(my_stl::List<T>* list) {
 template<class T>
 void ListPrintFromTail(my_stl::List<T>* list) {
 
-	std::cout << "Reverse Print (size: " << list->Size() << " ):" << std::endl;
+	std::cout << "Reverse Print (size: " << list->Size() << " , empty: " << list->Empty() << " ):" << std::endl;
 	for (auto it = list->RBegin(); it != list->REnd(); --it) {
 		std::cout << *it << "\t";
 	}
@@ -54,8 +54,12 @@ void TestList() {
 	list.Sort();
 	ListPrintFromHead<int>(&list);
 
-	std::cout << "Calling Sort([](const T& lhs, const T& rhs) {return lhs > rhs; });" << std::endl << std::endl;
+	std::cout << "Calling Sort([](const T& lhs, const T& rhs) {return lhs > rhs; })" << std::endl << std::endl;
 	list.Sort([](const int& lhs, const int& rhs) {return lhs > rhs; });
+	ListPrintFromHead<int>(&list);
+
+	std::cout << "Calling Clear()" << std::endl << std::endl;
+	list.Clear();
 	ListPrintFromHead<int>(&list);
 }
 
