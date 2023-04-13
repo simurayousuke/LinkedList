@@ -43,7 +43,7 @@ namespace my_stl {
 
 	bool Bitset::Any() const noexcept {
 
-		return (value_ | 0ull) != 0ull;
+		return value_ != 0ull;
 	}
 
 	bool Bitset::None() const noexcept {
