@@ -34,6 +34,7 @@ namespace my_stl {
 			bool operator==(const Iterator& rhs) const { return node_ == rhs.node_; }
 			bool operator!=(const Iterator& rhs) const { return node_ != rhs.node_; }
 			T& operator*() { return node_->value_; }
+			T* operator->() { return &(node_->value_); }
 		}; // class Iterator
 
 		List() : head_(nullptr), tail_(nullptr), size_(0) {}
